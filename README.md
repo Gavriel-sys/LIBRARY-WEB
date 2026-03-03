@@ -31,3 +31,32 @@ VITE_API_URL=https://library-backend-production-b9cf.up.railway.app
 npm install
 npm run dev
 ```
+
+
+## Troubleshooting: clone hanya berisi `.gitkeep`
+Jika setelah clone isi repo cuma `.gitkeep`, biasanya branch yang ter-push ke GitHub belum berisi commit terbaru.
+
+Langkah perbaikan (jalankan dari repo lokal yang benar):
+
+```bash
+# 1) pastikan remote GitHub ada
+git remote add origin <URL_REPO_GITHUB>
+
+# 2) pastikan branch kerja berisi commit terbaru
+git checkout work
+
+# 3) publish branch work ke GitHub
+git push -u origin work
+
+# 4) jadikan isi branch work sebagai main
+git push origin work:main
+
+# 5) di GitHub, set default branch ke main (Settings > Branches)
+```
+
+Validasi:
+
+```bash
+git ls-remote --heads origin
+git log --oneline --decorate -n 5
+```
