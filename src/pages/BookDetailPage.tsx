@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAppSelector } from "@/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BookCover } from "@/components/ui/book-cover";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import type { Book } from "@/types";
@@ -70,6 +71,7 @@ export function BookDetailPage() {
   return (
     <div className="space-y-4">
       <Card>
+        <BookCover title={bookQuery.data.title} coverImage={bookQuery.data.coverImage} className="mb-4 h-72 md:h-80" />
         <h1 className="text-2xl font-semibold">{bookQuery.data.title}</h1>
         <p className="text-sm text-slate-500">{bookQuery.data.author?.name} • {bookQuery.data.category?.name}</p>
         <p className="mt-2">{bookQuery.data.description || "Tidak ada deskripsi"}</p>

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BookCover } from "@/components/ui/book-cover";
 import { Input } from "@/components/ui/input";
 import { addToCart } from "@/features/cart/cartSlice";
 import { setCategory, setSearch } from "@/features/ui/uiSlice";
@@ -46,6 +47,7 @@ export function BooksPage() {
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {books.map((book) => (
           <Card key={book.id}>
+            <BookCover title={book.title} coverImage={book.coverImage} className="mb-3 h-52" />
             <h2 className="font-semibold">{book.title}</h2>
             <p className="text-sm text-slate-500">{book.author?.name ?? "Unknown"} • {book.category?.name ?? "Uncategorized"}</p>
             <p className="mt-2 text-sm">Stok: {book.stock}</p>
