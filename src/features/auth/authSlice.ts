@@ -11,12 +11,22 @@ function normalizeToken(raw: string | null): string | null {
   return raw;
 }
 
+function normalizeUser(raw: string | null): User | null {
+  if (!raw || raw === "undefined" || raw === "null") return null;
+  try {
+    return JSON.parse(raw) as User;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+}
+
 function getInitialState(): AuthState {
   const token = normalizeToken(localStorage.getItem("token"));
-  const userRaw = localStorage.getItem("user");
+  const user = normalizeUser(localStorage.getItem("user"));
   return {
     token,
-    user: userRaw ? (JSON.parse(userRaw) as User) : null,
+    user,
   };
 }
 
@@ -32,7 +42,11 @@ const authSlice = createSlice({
       } else {
         localStorage.removeItem("token");
       }
-      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      if (action.payload.user) {
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+      } else {
+        localStorage.removeItem("user");
+      }
     },
     updateUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
