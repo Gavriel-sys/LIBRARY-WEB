@@ -40,12 +40,22 @@ export function CartPage() {
         <Card key={item.id} className="flex items-center justify-between">
           <div>
             <p className="font-medium">{item.title}</p>
-            <p className="text-sm text-slate-500">Stock: {item.stock}</p>
+            <p className="text-sm text-slate-500">
+              Stock: {item.availableCopies}
+            </p>
           </div>
-          <Button variant="ghost" onClick={() => dispatch(removeFromCart(item.id))}>Hapus</Button>
+          <Button
+            variant="ghost"
+            onClick={() => dispatch(removeFromCart(item.id))}
+          >
+            Hapus
+          </Button>
         </Card>
       ))}
-      <Button disabled={!items.length || checkoutMutation.isPending || !token} onClick={() => checkoutMutation.mutate()}>
+      <Button
+        disabled={!items.length || checkoutMutation.isPending || !token}
+        onClick={() => checkoutMutation.mutate()}
+      >
         Confirm & Borrow
       </Button>
     </div>
