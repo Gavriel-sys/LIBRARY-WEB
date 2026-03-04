@@ -4,11 +4,31 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? "https://library-backend-produc
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
+type ApiEnvelope<T> = T | { data?: T; result?: T; payload?: T };
+
 interface RequestOptions {
   method?: HttpMethod;
   token?: string | null;
   body?: unknown;
   formData?: FormData;
+}
+
+function unwrapEnvelope<T>(value: ApiEnvelope<T>): T {
+  if (value && typeof value === "object") {
+    const asObj = value as { data?: T; result?: T; payload?: T };
+    if (asObj.data !== undefined) return asObj.data;
+    if (asObj.result !== undefined) return asObj.result;
+    if (asObj.payload !== undefined) return asObj.payload;
+  }
+  return value as T;
+}
+
+function extractAuthResponse(raw: ApiEnvelope<AuthResponse>): AuthResponse {
+  const payload = unwrapEnvelope(raw);
+  if (!payload?.token || !payload?.user) {
+    throw new Error("Format response auth tidak valid");
+  }
+  return payload;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -28,14 +48,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
 
   if (response.status === 204) return {} as T;
-  return (await response.json()) as T;
+  const body = (await response.json()) as ApiEnvelope<T>;
+  return unwrapEnvelope<T>(body);
 }
 
 export const api = {
-  login: (payload: { email: string; password: string }) =>
-    request<AuthResponse>("/api/auth/login", { method: "POST", body: payload }),
-  register: (payload: { name: string; email: string; phone: string; password: string }) =>
-    request<AuthResponse>("/api/auth/register", { method: "POST", body: payload }),
+  login: async (payload: { email: string; password: string }) => {
+    const raw = await request<ApiEnvelope<AuthResponse>>("/api/auth/login", { method: "POST", body: payload });
+    return extractAuthResponse(raw);
+  },
+  register: async (payload: { name: string; email: string; phone: string; password: string }) => {
+    const raw = await request<ApiEnvelope<AuthResponse>>("/api/auth/register", { method: "POST", body: payload });
+    return extractAuthResponse(raw);
+  },
 
   getBooks: () => request<Book[]>("/api/books"),
   getBookDetail: (id: number) => request<Book>(`/api/books/${id}`),

@@ -6,8 +6,13 @@ interface AuthState {
   user: User | null;
 }
 
+function normalizeToken(raw: string | null): string | null {
+  if (!raw || raw === "undefined" || raw === "null") return null;
+  return raw;
+}
+
 function getInitialState(): AuthState {
-  const token = localStorage.getItem("token");
+  const token = normalizeToken(localStorage.getItem("token"));
   const userRaw = localStorage.getItem("user");
   return {
     token,
@@ -22,7 +27,11 @@ const authSlice = createSlice({
     setAuth: (state, action: PayloadAction<AuthState>) => {
       state.token = action.payload.token;
       state.user = action.payload.user;
-      localStorage.setItem("token", action.payload.token ?? "");
+      if (action.payload.token) {
+        localStorage.setItem("token", action.payload.token);
+      } else {
+        localStorage.removeItem("token");
+      }
       localStorage.setItem("user", JSON.stringify(action.payload.user));
     },
     updateUser: (state, action: PayloadAction<User>) => {
