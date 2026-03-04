@@ -31,6 +31,17 @@ function extractAuthResponse(raw: ApiEnvelope<AuthResponse>): AuthResponse {
   return payload;
 }
 
+function extractList<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    const candidates = [obj.items, obj.content, obj.rows, obj.books, obj.loans, obj.reviews, obj.users, obj.data];
+    const match = candidates.find((item) => Array.isArray(item));
+    if (Array.isArray(match)) return match as T[];
+  }
+  return [];
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {};
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
@@ -62,16 +73,16 @@ export const api = {
     return extractAuthResponse(raw);
   },
 
-  getBooks: () => request<Book[]>("/api/books"),
+  getBooks: async () => extractList<Book>(await request<unknown>("/api/books")),
   getBookDetail: (id: number) => request<Book>(`/api/books/${id}`),
 
   borrowBook: (payload: { bookId: number; days: number }, token: string) =>
     request<Loan>("/api/loans", { method: "POST", body: payload, token }),
   borrowFromCart: (payload: { itemIds: number[]; days: number; borrowDate: string }, token: string) =>
     request<Loan[]>("/api/loans/from-cart", { method: "POST", body: payload, token }),
-  getMyLoans: (token: string) => request<Loan[]>("/api/loans/my", { token }),
+  getMyLoans: async (token: string) => extractList<Loan>(await request<unknown>("/api/loans/my", { token })),
 
-  getBookReviews: (bookId: number) => request<Review[]>(`/api/reviews/book/${bookId}`),
+  getBookReviews: async (bookId: number) => extractList<Review>(await request<unknown>(`/api/reviews/book/${bookId}`)),
   addReview: (payload: { bookId: number; star: number; comment: string }, token: string) =>
     request<Review>("/api/reviews", { method: "POST", body: payload, token }),
   deleteReview: (id: number, token: string) => request<void>(`/api/reviews/${id}`, { method: "DELETE", token }),
@@ -84,12 +95,12 @@ export const api = {
     if (payload.profilePhoto) fd.append("profilePhoto", payload.profilePhoto);
     return request<User>("/api/me", { method: "PATCH", token, formData: fd });
   },
-  getMyProfileLoans: (token: string) => request<Loan[]>("/api/me/loans", { token }),
-  getMyReviews: (token: string) => request<Review[]>("/api/me/reviews", { token }),
+  getMyProfileLoans: async (token: string) => extractList<Loan>(await request<unknown>("/api/me/loans", { token })),
+  getMyReviews: async (token: string) => extractList<Review>(await request<unknown>("/api/me/reviews", { token })),
 
-  adminBooks: (token: string) => request<Book[]>("/api/admin/books", { token }),
-  adminLoans: (token: string) => request<Loan[]>("/api/admin/loans", { token }),
-  adminOverdue: (token: string) => request<Loan[]>("/api/admin/loans/overdue", { token }),
+  adminBooks: async (token: string) => extractList<Book>(await request<unknown>("/api/admin/books", { token })),
+  adminLoans: async (token: string) => extractList<Loan>(await request<unknown>("/api/admin/loans", { token })),
+  adminOverdue: async (token: string) => extractList<Loan>(await request<unknown>("/api/admin/loans/overdue", { token })),
   adminOverview: (token: string) => request<Record<string, number>>("/api/admin/overview", { token }),
-  adminUsers: (token: string) => request<User[]>("/api/admin/users", { token }),
+  adminUsers: async (token: string) => extractList<User>(await request<unknown>("/api/admin/users", { token })),
 };

@@ -17,7 +17,7 @@ export function BooksPage() {
   const booksQuery = useQuery({ queryKey: ["books"], queryFn: api.getBooks });
 
   const books = useMemo(() => {
-    const all = booksQuery.data ?? [];
+    const all = Array.isArray(booksQuery.data) ? booksQuery.data : [];
     return all.filter((book) => {
       const bySearch = `${book.title} ${book.author?.name ?? ""}`.toLowerCase().includes(search.toLowerCase());
       const byCategory = category === "all" || book.category?.name === category;
@@ -25,7 +25,7 @@ export function BooksPage() {
     });
   }, [booksQuery.data, search, category]);
 
-  const categories = Array.from(new Set((booksQuery.data ?? []).map((b) => b.category?.name).filter(Boolean))) as string[];
+  const categories = Array.from(new Set((Array.isArray(booksQuery.data) ? booksQuery.data : []).map((b) => b.category?.name).filter(Boolean))) as string[];
 
   return (
     <div className="space-y-4">
